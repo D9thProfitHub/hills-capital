@@ -38,10 +38,6 @@ import {
   Delete,
   Visibility,
   Share,
-  AttachMoney,
-  People,
-  TrendingUp,
-  Link,
   ContentCopy
 } from '@mui/icons-material';
 

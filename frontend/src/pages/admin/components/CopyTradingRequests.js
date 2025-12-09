@@ -32,17 +32,13 @@ import {
   Tab,
   Badge,
   LinearProgress,
-  CircularProgress,
-  Paper
+  CircularProgress
 } from '@mui/material';
 import {
   Visibility,
   CheckCircle,
   Cancel,
-  ContentCopy,
   Person,
-  AttachMoney,
-  TrendingUp,
   TrendingDown,
   Assignment,
   Refresh,
@@ -86,40 +82,20 @@ const CopyTradingRequests = () => {
   const [statusFilter, setStatusFilter] = useState('pending'); // Default to show pending requests
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const { on } = useWebSocket();
 
-  useEffect(() => {
-    loadData();
-    
-    // Listen for new copy trading requests
-    const unsub = on('newCopyRequest', (payload) => {
-      toast.info('New copy-trading request received');
-      setRequests(prev => [payload, ...prev]);
-    });
-
-    // Listen for updates to existing requests
-    const unsubUpdate = on('copyTradingRequestUpdated', (payload) => {
-      setRequests(prev => 
-        prev.map(req => req.id === payload.id ? { ...req, ...payload } : req)
-      );
-    });
-
-    return () => {
-      unsub && unsub();
-      unsubUpdate && unsubUpdate();
-    };
-  }, []);
-
-  useEffect(() => {
-    filterRequests();
+  const filterRequests = React.useCallback(() => {
+    if (statusFilter === 'all') {
+      setFilteredRequests(requests);
+    } else {
+      setFilteredRequests(requests.filter(request => request.status === statusFilter));
+    }
   }, [requests, statusFilter]);
 
-  const loadData = async () => {
+  const loadData = React.useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
       
       // Load data in parallel
       const [requestsResponse, tradersResponse] = await Promise.all([
@@ -161,14 +137,39 @@ const CopyTradingRequests = () => {
     } catch (err) {
       console.error('Error loading data:', err);
       const errorMessage = err.response?.data?.message || 'Failed to load data. Please try again.';
-      setError(errorMessage);
       toast.error(errorMessage);
-      toast.error('Failed to load copy trading data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
 
+  useEffect(() => {
+    loadData();
+    
+    // Listen for new copy trading requests
+    const unsub = on('newCopyRequest', (payload) => {
+      toast.info('New copy-trading request received');
+      setRequests(prev => [payload, ...prev]);
+    });
+
+    // Listen for updates to existing requests
+    const unsubUpdate = on('copyTradingRequestUpdated', (payload) => {
+      setRequests(prev => 
+        prev.map(req => req.id === payload.id ? { ...req, ...payload } : req)
+      );
+    });
+
+    return () => {
+      unsub && unsub();
+      unsubUpdate && unsubUpdate();
+    };
+  }, [on, loadData]);
+
+  useEffect(() => {
+    filterRequests();
+  }, [filterRequests]);
+
+  // Unused functions kept for potential future use
   const fetchCopyTradingRequests = async (filters = {}) => {
     try {
       // Default to current status filter if not specified
@@ -237,14 +238,6 @@ const CopyTradingRequests = () => {
       console.error('Error refreshing data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const filterRequests = () => {
-    if (statusFilter === 'all') {
-      setFilteredRequests(requests);
-    } else {
-      setFilteredRequests(requests.filter(request => request.status === statusFilter));
     }
   };
 

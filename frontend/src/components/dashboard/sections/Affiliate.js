@@ -55,9 +55,6 @@ const Affiliate = () => {
         
         setAffiliateData(affiliateResponse.data.data);
         
-        // Fetch user's referrals
-        const referralsResponse = await api.get('/api/users/affiliate/referrals');
-        
         // Referrals are now included in affiliateData
         setLoading(false);
         
