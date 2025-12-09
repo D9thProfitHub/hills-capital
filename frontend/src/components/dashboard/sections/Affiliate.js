@@ -8,7 +8,6 @@ import {
   Button,
   TextField,
   InputAdornment,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -23,7 +22,6 @@ import {
 } from '@mui/material';
 import {
   ContentCopy,
-  Share,
   Email,
   Facebook,
   Twitter,
@@ -38,7 +36,6 @@ import {
 } from '@mui/icons-material';
 
 import api from '../../../services/api';
-import io from 'socket.io-client';
 
 const Affiliate = () => {
   const [isLinkCopied, setIsLinkCopied] = useState(false);

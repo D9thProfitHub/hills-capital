@@ -3,9 +3,6 @@ import axios from 'axios';
 // CoinGecko API for cryptocurrency data
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
-// Mock Forex API (in a real app, you would use a paid forex API)
-const FOREX_API = 'https://api.exchangerate-api.com/v4/latest/USD';
-
 // Get top cryptocurrencies with market data
 export const getCryptocurrencies = async () => {
   try {
