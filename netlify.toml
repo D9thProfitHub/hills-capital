@@ -1,0 +1,12 @@
+[build]
+  # Directory where the build output is located
+  publish = "frontend/build"
+  
+  # Build command to run (optional - only if you want Netlify to build for you)
+  # command = "cd frontend && npm install && npm run build"
+
+[[redirects]]
+  # Redirect all routes to index.html for client-side routing (React Router)
+  from = "/*"
+  to = "/index.html"
+  status = 200
