@@ -1,0 +1,221 @@
+import { DataTypes } from 'sequelize';
+
+const EducationContent = {
+  initialize: (sequelize) => {
+    return sequelize.define('EducationContent', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  title: {
+    type: DataTypes.STRING(200),
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+      len: [1, 200]
+    }
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+      len: [1, 1000]
+    }
+  },
+  content: {
+    type: DataTypes.TEXT,
+    allowNull: true // Optional for webinars
+  },
+  type: {
+    type: DataTypes.ENUM('course', 'webinar', 'article', 'quiz'),
+    allowNull: false,
+    defaultValue: 'course'
+  },
+  level: {
+    type: DataTypes.ENUM('Beginner', 'Intermediate', 'Advanced'),
+    allowNull: false,
+    defaultValue: 'Beginner'
+  },
+  duration: {
+    type: DataTypes.INTEGER, // in minutes
+    allowNull: true,
+    validate: {
+      min: 1
+    }
+  },
+  lessons: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
+  },
+  thumbnail: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: 'https://picsum.photos/400/250'
+  },
+  videoUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'video_url'
+  },
+  // Course specific fields
+  prerequisites: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  learningObjectives: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+    field: 'learning_objectives'
+  },
+  // Webinar specific fields
+  scheduledDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'scheduled_date'
+  },
+  speaker: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  meetingLink: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'meeting_link'
+  },
+  maxAttendees: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    validate: {
+      min: 1
+    },
+    field: 'max_attendees'
+  },
+  // Quiz specific fields
+  questions: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  passingScore: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    validate: {
+      min: 0,
+      max: 100
+    },
+    field: 'passing_score'
+  },
+  // Common fields
+  isPublished: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: 'is_published'
+  },
+  isLocked: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: 'is_locked'
+  },
+  requiredSubscriptionLevel: {
+    type: DataTypes.ENUM('free', 'basic', 'premium', 'vip'),
+    allowNull: false,
+    defaultValue: 'free',
+    field: 'required_subscription_level'
+  },
+  views: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  enrollments: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  rating: {
+    type: DataTypes.DECIMAL(3, 2),
+    allowNull: true,
+    validate: {
+      min: 0,
+      max: 5
+    }
+  },
+  ratingCount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    field: 'rating_count'
+  },
+  tags: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  createdBy: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    field: 'created_by'
+  }
+}, {
+  tableName: 'education_content',
+  timestamps: true,
+  indexes: [
+    {
+      fields: ['type']
+    },
+    {
+      fields: ['level']
+    },
+    {
+      fields: ['isPublished']
+    },
+    {
+      fields: ['createdBy']
+    }
+  ]
+});
+
+// Instance methods
+EducationContent.prototype.incrementViews = function() {
+  return this.increment('views');
+};
+
+EducationContent.prototype.incrementEnrollments = function() {
+  return this.increment('enrollments');
+};
+
+    });
+    
+    // Instance methods
+    const model = sequelize.models.EducationContent;
+    
+    model.prototype.updateRating = function(newRating) {
+      const currentTotal = this.rating * this.ratingCount;
+      const newCount = this.ratingCount + 1;
+      const newAverage = (currentTotal + newRating) / newCount;
+      
+      return this.update({
+        rating: newAverage,
+        ratingCount: newCount
+      });
+    };
+    
+    return model;
+  }
+};
+
+export default EducationContent;

@@ -1,0 +1,52 @@
+{
+  "name": "hills-capital-backend",
+  "version": "1.0.0",
+  "description": "Backend for Hills Capital Trade Platform",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "test:db": "node test-db.js",
+    "setup": "node setup-db.js",
+    "db:create": "node -e \"const { sequelize } = require('./src/config/db.js'); sequelize.getQueryInterface().createDatabase(process.env.DB_NAME || 'hillscapitaltrade').then(() => { console.log('Database created successfully'); process.exit(0); }).catch(console.error);\"",
+    "db:drop": "node -e \"const { sequelize } = require('./src/config/db.js'); sequelize.getQueryInterface().dropDatabase(process.env.DB_NAME || 'hillscapitaltrade').then(() => { console.log('Database dropped successfully'); process.exit(0); }).catch(console.error);\"",
+    "db:migrate": "npx sequelize-cli db:migrate",
+    "db:migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "db:seed": "npx sequelize-cli db:seed:all",
+    "db:reset": "npm run db:drop && npm run db:create && npm run db:migrate && npm run setup"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.0.1",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "html-to-text": "^9.0.5",
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.5",
+    "morgan": "^1.10.1",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.14.3",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^6.9.5",
+    "pug": "^3.0.3",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "jest": "^29.6.4",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}

@@ -1,0 +1,119 @@
+import { DataTypes } from 'sequelize';
+import { sequelize } from '../config/db.js';
+
+const UserEducationProgress = sequelize.define('UserEducationProgress', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    onDelete: 'CASCADE'
+  },
+  educationContentId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'education_content',
+      key: 'id'
+    },
+    onDelete: 'CASCADE'
+  },
+  progress: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    validate: {
+      min: 0,
+      max: 100
+    }
+  },
+  completedLessons: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  isCompleted: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
+  completedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  timeSpent: {
+    type: DataTypes.INTEGER, // in minutes
+    allowNull: false,
+    defaultValue: 0
+  },
+  lastAccessedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  rating: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    validate: {
+      min: 1,
+      max: 5
+    }
+  },
+  review: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  isSaved: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  }
+}, {
+  tableName: 'user_education_progress',
+  timestamps: true,
+  indexes: [
+    {
+      fields: ['userId']
+    },
+    {
+      fields: ['educationContentId']
+    },
+    {
+      unique: true,
+      fields: ['userId', 'educationContentId']
+    }
+  ]
+});
+
+// Instance methods
+UserEducationProgress.prototype.updateProgress = function(lessonId, completed = true) {
+  const completedLessons = this.completedLessons || [];
+  
+  if (completed && !completedLessons.includes(lessonId)) {
+    completedLessons.push(lessonId);
+  } else if (!completed && completedLessons.includes(lessonId)) {
+    const index = completedLessons.indexOf(lessonId);
+    completedLessons.splice(index, 1);
+  }
+  
+  return this.update({
+    completedLessons,
+    lastAccessedAt: new Date()
+  });
+};
+
+UserEducationProgress.prototype.markCompleted = function() {
+  return this.update({
+    isCompleted: true,
+    completedAt: new Date(),
+    progress: 100
+  });
+};
+
+export default UserEducationProgress;
