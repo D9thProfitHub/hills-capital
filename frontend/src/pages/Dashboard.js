@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Container,
@@ -87,7 +87,7 @@ const Dashboard = () => {
   };
 
   // Fetch dashboard stats from API
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/api/users/dashboard/stats');
@@ -112,11 +112,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   // WebSocket effect for real-time subscription updates
   useEffect(() => {
@@ -159,7 +159,7 @@ const Dashboard = () => {
       console.warn('WebSocket connection failed:', error);
       // Continue without WebSocket - dashboard should still work
     }
-  }, []);
+  }, [fetchDashboardData]);
 
 
 

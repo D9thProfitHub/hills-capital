@@ -22,25 +22,13 @@ export const register = async (userData) => {
     
     // If we have a response with error data
     if (error.response?.data) {
-      throw {
-        response: {
-          data: {
-            error: error.response.data.error || 
-                  error.response.data.message || 
-                  'Registration failed'
-          }
-        }
-      };
+      throw new Error(error.response.data.error || 
+                     error.response.data.message || 
+                     'Registration failed');
     }
     
     // For network errors or other issues
-    throw {
-      response: {
-        data: {
-          error: error.message || 'An unexpected error occurred'
-        }
-      }
-    };
+    throw new Error(error.message || 'An unexpected error occurred');
   }
 };
 
@@ -116,25 +104,13 @@ export const login = async (credentials) => {
     
     // If we have a response with error data
     if (error.response?.data) {
-      throw {
-        response: {
-          data: {
-            error: error.response.data.error || 
-                  error.response.data.message || 
-                  'Login failed. Please check your credentials.'
-          }
-        }
-      };
+      throw new Error(error.response.data.error || 
+                     error.response.data.message || 
+                     'Login failed. Please check your credentials.');
     }
     
     // For network errors or other issues
-    throw {
-      response: {
-        data: {
-          error: error.message || 'An unexpected error occurred during login'
-        }
-      }
-    };
+    throw new Error(error.message || 'An unexpected error occurred during login');
   }
 };
 

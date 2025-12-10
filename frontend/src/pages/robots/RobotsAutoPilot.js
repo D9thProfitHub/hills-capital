@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Typography, Box, Grid, Card, CardContent, Button, Divider, Chip } from '@mui/material';
-import { Settings as SettingsIcon, Equalizer as StatsIcon, PlayArrow as StartIcon, Stop as StopIcon } from '@mui/icons-material';
+import { Settings as SettingsIcon, PlayArrow as StartIcon, Stop as StopIcon } from '@mui/icons-material';
 
 const RobotsAutoPilot = () => {
   const robots = [
