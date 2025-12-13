@@ -28,6 +28,10 @@ import {
 import TradingViewWidget from '../components/TradingViewWidget';
 import ErrorBoundary from '../components/ErrorBoundary';
 
+// ✅ New imports
+import TelegramButton from "../components/TelegramButton";
+import DiscordButton from "../components/DiscordButton";
+
 const ServiceCard = ({ icon, title, description, features, link }) => (
   <Card
     sx={{
@@ -80,7 +84,6 @@ const ServiceCard = ({ icon, title, description, features, link }) => (
 );
 
 const Home = () => {
-
   return (
     <Box sx={{ overflowX: 'hidden' }}>
       {/* TradingView Widget */}
@@ -149,7 +152,9 @@ const Home = () => {
               >
                 Access premium signals, automated trading bots, and comprehensive education for Forex, Crypto, and Synthetic Indices.
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+
+              {/* Trial & Markets Buttons */}
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
                 <Button
                   component={RouterLink}
                   to="/register"
@@ -190,7 +195,14 @@ const Home = () => {
                   View Markets
                 </Button>
               </Box>
+
+              {/* ✅ Telegram & Discord Buttons */}
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TelegramButton />
+                <DiscordButton />
+              </Box>
             </Grid>
+
             <Grid item xs={12} md={5}>
               <Box
                 sx={{
@@ -247,8 +259,8 @@ const Home = () => {
                 icon={<TimelineIcon color="primary" sx={{ fontSize: 40 }} />}
                 title="Synthetic Indices"
                 description="Trade 24/7 with our exclusive synthetic indices signals and strategies."
-                features={['High Volatility Pairs', '24/7 Market Access', 'Specialized Strategies']}
-                link="/signal-room"
+                features={['High Volatility Pairs', '24/7 Market Access', 'Automated Strategies']}
+                link="/synthetic-indices"
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -299,8 +311,7 @@ const Home = () => {
           </Grid>
         </Container>
       </Box>
-
-      {/* CTA Section */}
+            {/* CTA Section */}
       <Box sx={{ py: 10, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 800 }}>
