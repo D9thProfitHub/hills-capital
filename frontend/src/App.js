@@ -28,7 +28,10 @@ import AffiliateSystem from './pages/AffiliateSystem';
 import RobotsAutoPilot from './pages/RobotsAutoPilot';
 import Markets from './pages/Markets';
 import TermsOfService from './pages/TermsOfService';
-import WhatsAppButton from './components/WhatsAppButton';
+import TelegramButton from "./components/TelegramButton";
+import DiscordButton from "./components/DiscordButton";
+
+
 
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
@@ -179,7 +182,10 @@ function App() {
                   </Routes>
                 </main>
                 <Footer />
-                <WhatsAppButton />
+                <div style={{ display: "flex", gap: "1rem" }}>
+          <TelegramButton />
+          <DiscordButton />
+        </div>
                 <ToastContainer
                   position="bottom-right"
                   autoClose={5000}
