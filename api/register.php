@@ -1,12 +1,12 @@
 <?php
-// ✅ CORS headers (allow your Vercel frontend)
-header("Access-Control-Allow-Origin: https://hills-capital.vercel.app");
+// --- CORS headers ---
+header("Access-Control-Allow-Origin: https://your-vercel-project.vercel.app"); // replace with your actual Vercel domain
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=UTF-8");
 
-// ✅ Handle preflight OPTIONS request
+// --- Handle preflight OPTIONS request ---
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
@@ -14,28 +14,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 include 'db.php';
 
-// ✅ Get input safely
-$email = $_POST['email'] ?? '';
-$password = $_POST['password'] ?? '';
+// --- Decode JSON input (Axios sends JSON) ---
+$input = json_decode(file_get_contents("php://input"), true);
 
-if (!$email || !$password) {
+$name     = trim($input['name'] ?? '');
+$email    = trim($input['email'] ?? '');
+$phone    = trim($input['phone'] ?? '');
+$password = trim($input['password'] ?? '');
+
+// --- Validate required fields ---
+if (empty($name) || empty($email) || empty($phone) || empty($password)) {
     http_response_code(400);
-    echo json_encode(["error" => "Email and password required"]);
+    echo json_encode(["error" => "Name, email, phone, and password are required"]);
     exit;
 }
 
-// ✅ Hash password securely
+// --- Hash password securely ---
 $hash = password_hash($password, PASSWORD_BCRYPT);
 
-// ✅ Insert into DB
-$stmt = $pdo->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
-
+// --- Insert into database ---
 try {
-    $stmt->execute([$email, $hash]);
+    $stmt = $pdo->prepare("INSERT INTO users (name, email, phone, password_hash) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$name, $email, $phone, $hash]);
+
     http_response_code(200);
     echo json_encode(["message" => "User registered successfully"]);
 } catch (PDOException $e) {
+    // Handle duplicate email or other DB errors
     http_response_code(400);
-    echo json_encode(["error" => "Email already exists"]);
+    echo json_encode(["error" => "Registration failed: " . $e->getMessage()]);
 }
 ?>

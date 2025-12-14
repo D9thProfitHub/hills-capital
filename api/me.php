@@ -1,20 +1,21 @@
 <?php
-// ✅ CORS headers (allow your Vercel frontend)
-header("Access-Control-Allow-Origin: https://hills-capital.vercel.app");
+// --- CORS headers ---
+header("Access-Control-Allow-Origin: https://your-vercel-project.vercel.app"); // replace with your actual Vercel domain
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=UTF-8");
 
-// ✅ Handle preflight OPTIONS request
+// --- Handle preflight OPTIONS request ---
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
 include 'db.php';
+session_start();
 
-// ✅ Get Authorization header
+// --- Get Authorization header ---
 $headers = getallheaders();
 $authHeader = $headers['Authorization'] ?? '';
 
@@ -26,18 +27,14 @@ if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
 
 $token = $matches[1];
 
-// ⚠️ NOTE: In the login.php we generated a random token. 
-// For production, you’d normally store this token in DB or use JWT.
-// Here we’ll just simulate token validation for demonstration.
-
-session_start();
+// --- Validate token against session ---
 if (!isset($_SESSION['token']) || $_SESSION['token'] !== $token) {
     http_response_code(401);
     echo json_encode(["error" => "Invalid or expired token"]);
     exit;
 }
 
-// ✅ Fetch user info (assuming you stored user ID in session)
+// --- Get user ID from session ---
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
@@ -46,7 +43,8 @@ if (!$userId) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT id, email FROM users WHERE id = ?");
+// --- Fetch user info ---
+$stmt = $pdo->prepare("SELECT id, name, email, phone FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -56,9 +54,10 @@ if (!$user) {
     exit;
 }
 
+// --- Return user profile ---
 http_response_code(200);
 echo json_encode([
     "message" => "User authenticated",
-    "user" => $user
+    "user"    => $user
 ]);
 ?>
