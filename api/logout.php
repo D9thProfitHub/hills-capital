@@ -1,6 +1,6 @@
 <?php
 // --- CORS headers ---
-header("Access-Control-Allow-Origin: https://your-vercel-project.vercel.app"); // replace with your actual Vercel domain
+header("Access-Control-Allow-Origin: https://hills-capital.vercel.app"); // replace with your actual Vercel domain
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Credentials: true");
