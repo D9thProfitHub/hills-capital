@@ -34,13 +34,24 @@ $hash = password_hash($password, PASSWORD_BCRYPT);
 
 // --- Insert into database ---
 try {
-    $stmt = $pdo->prepare("INSERT INTO users (name, email, phone, password_hash) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$name, $email, $phone, $hash]);
+    // 👇 Default subscription_level is "free"
+    $stmt = $pdo->prepare("INSERT INTO users (name, email, phone, password_hash, subscription_level) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$name, $email, $phone, $hash, 'free']);
+
+    // Get the newly created user ID
+    $userId = $pdo->lastInsertId();
+
+    // Fetch the user back
+    $stmt = $pdo->prepare("SELECT id, name, email, phone, subscription_level FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     http_response_code(200);
-    echo json_encode(["message" => "User registered successfully"]);
+    echo json_encode([
+        "message" => "User registered successfully",
+        "user" => $user
+    ]);
 } catch (PDOException $e) {
-    // Handle duplicate email or other DB errors
     http_response_code(400);
     echo json_encode(["error" => "Registration failed: " . $e->getMessage()]);
 }
