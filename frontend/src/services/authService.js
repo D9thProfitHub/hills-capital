@@ -16,7 +16,11 @@ export const register = async (userData) => {
   } catch (error) {
     console.error('Register error:', error);
     if (error.response?.data) {
-      throw new Error(error.response.data.error || error.response.data.message || 'Registration failed');
+      throw new Error(
+        error.response.data.error ||
+        error.response.data.message ||
+        'Registration failed'
+      );
     }
     throw new Error(error.message || 'An unexpected error occurred');
   }
@@ -42,7 +46,11 @@ export const login = async (credentials) => {
   } catch (error) {
     console.error('Login error:', error);
     if (error.response?.data) {
-      throw new Error(error.response.data.error || error.response.data.message || 'Login failed');
+      throw new Error(
+        error.response.data.error ||
+        error.response.data.message ||
+        'Login failed'
+      );
     }
     throw new Error(error.message || 'An unexpected error occurred during login');
   }
@@ -51,8 +59,7 @@ export const login = async (credentials) => {
 // --- Logout ---
 export const logout = async () => {
   try {
-    // If you want a PHP logout endpoint, create logout.php
-    await api.get('/logout.php');
+    await api.get('/logout.php'); // PHP logout endpoint
   } catch (error) {
     console.error('Logout error:', error);
   } finally {
@@ -71,6 +78,11 @@ export const getCurrentUser = async () => {
   } catch {
     return null;
   }
+};
+
+// --- Get token (added back for build compatibility) ---
+export const getToken = () => {
+  return localStorage.getItem('token');
 };
 
 // --- Event emitter for auth state changes ---
