@@ -16,22 +16,21 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('user');
-        
+
         if (token && userData) {
-          // Set the default Authorization header
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
+
           try {
-            // Verify the token is still valid
             const currentUser = JSON.parse(userData);
-            setUser(currentUser);
+
+            // 👇 Ensure subscription_level is always present
+            setUser({
+              ...currentUser,
+              subscription_level: currentUser.subscription_level || 'free'
+            });
             setIsAuthenticated(true);
-            
-            // Optionally, you can make an API call to validate the token
-            // await api.get('/auth/validate');
           } catch (error) {
             console.error('Error validating token:', error);
-            // If token validation fails, clear auth data
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             delete api.defaults.headers.common['Authorization'];
@@ -54,18 +53,21 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const data = await authLogin(credentials);
-      
-      // Set the default Authorization header
+
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-      
-      // Update state
-      setUser(data.user);
+
+      // 👇 Ensure subscription_level is stored
+      const userWithSubscription = {
+        ...data.user,
+        subscription_level: data.user.subscription_level || 'free'
+      };
+
+      setUser(userWithSubscription);
       setIsAuthenticated(true);
-      
-      // Store user data and token
+
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
+      localStorage.setItem('user', JSON.stringify(userWithSubscription));
+
       showSuccess('Successfully logged in');
       return data;
     } catch (error) {
@@ -73,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete api.defaults.headers.common['Authorization'];
-      
+
       const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
       showError(errorMessage);
       throw new Error(errorMessage);
@@ -84,7 +86,13 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const data = await authRegister(userData);
-      setUser(data.user);
+
+      const userWithSubscription = {
+        ...data.user,
+        subscription_level: data.user.subscription_level || 'free'
+      };
+
+      setUser(userWithSubscription);
       showSuccess('Registration successful! Please check your email to verify your account.');
       return data;
     } catch (error) {
@@ -99,38 +107,40 @@ export const AuthProvider = ({ children }) => {
       await authLogout();
     } catch (error) {
       console.error('Logout API error:', error);
-      // Continue with client-side logout even if API call fails
     } finally {
-      // Clear auth state
       setUser(null);
       setIsAuthenticated(false);
-      
-      // Remove stored data
+
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete api.defaults.headers.common['Authorization'];
-      
+
       showSuccess('Successfully logged out');
     }
   };
 
   // Update user data
   const updateUser = (userData) => {
-    setUser(userData);
+    const updatedUser = {
+      ...userData,
+      subscription_level: userData.subscription_level || user?.subscription_level || 'free'
+    };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   // Update user profile
   const updateProfile = async (profileData) => {
     try {
       const response = await api.put('/auth/profile', profileData);
-      const updatedUser = response.data.user;
-      
-      // Update local state
+      const updatedUser = {
+        ...response.data.user,
+        subscription_level: response.data.user.subscription_level || user?.subscription_level || 'free'
+      };
+
       setUser(updatedUser);
-      
-      // Update localStorage
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      
+
       showSuccess('Profile updated successfully');
       return updatedUser;
     } catch (error) {
@@ -140,7 +150,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Context value
   const value = {
     user,
     loading,
@@ -153,14 +162,10 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user?.role === 'admin'
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
+// Custom hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

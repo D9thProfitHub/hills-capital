@@ -3,7 +3,7 @@ import React from "react";
 function DiscordButton() {
   const handleClick = () => {
     // Replace with your actual Discord invite link
-    window.open("https://discord.gg/YourInviteCode", "_blank");
+    window.open("https://discord.gg/ZTVD7Apk", "_blank");
   };
 
   return (

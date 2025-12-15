@@ -128,32 +128,35 @@ const Dashboard = () => {
   };
 
   // Fetch dashboard stats from API
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/api/users/dashboard/stats');
+const fetchDashboardData = useCallback(async () => {
+  try {
+    setLoading(true);
+    const response = await api.get('https://d9thprofithub.com.ng/api/stats.php');
 
-      setDashboardStats({
-        balance: response.data.stats?.balance || 0,
-        activeInvestments: response.data.stats?.totalInvestments || 0,
-        subscriptionStatus: response.data.subscriptionStatus || 'inactive',
-        welcomeMessage: response.data.welcomeMessage || 'Welcome back!'
-      });
+    console.log("📡 Backend stats response:", response.data);
 
-      if (response.data.currentPlan) {
-        setCurrentSubscription(response.data.currentPlan);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
+    setDashboardStats({
+      balance: response.data.stats?.balance || 0,
+      activeInvestments: response.data.stats?.totalInvestments || 0,
+      subscriptionStatus: response.data.subscriptionStatus || 'inactive',
+      welcomeMessage: response.data.welcomeMessage || 'Welcome back!'
+    });
+
+    if (response.data.currentPlan) {
+      setCurrentSubscription(response.data.currentPlan);
+      console.log("💳 Current subscription level:", response.data.currentPlan);
     }
-  }, []);
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    toast.error('Failed to load dashboard data');
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+useEffect(() => {
+  fetchDashboardData();
+}, [fetchDashboardData]);
 
   // WebSocket effect for real-time subscription updates
   useEffect(() => {
