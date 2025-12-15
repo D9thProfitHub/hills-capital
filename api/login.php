@@ -30,8 +30,8 @@ if (empty($email) || empty($password)) {
     exit;
 }
 
-// --- Fetch user from DB ---
-$stmt = $pdo->prepare("SELECT id, name, email, phone, password_hash FROM users WHERE email = ?");
+// --- Fetch user from DB (include subscription_level) ---
+$stmt = $pdo->prepare("SELECT id, name, email, phone, password_hash, subscription_level FROM users WHERE email = ?");
 $stmt->execute([$email]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -61,10 +61,11 @@ echo json_encode([
     "message" => "Login successful",
     "token"   => $token,
     "user"    => [
-        "id"    => $user['id'],
-        "name"  => $user['name'],
-        "email" => $user['email'],
-        "phone" => $user['phone']
+        "id"                 => $user['id'],
+        "name"               => $user['name'],
+        "email"              => $user['email'],
+        "phone"              => $user['phone'],
+        "subscription_level" => $user['subscription_level'] ?? 'free'
     ]
 ]);
 ?>

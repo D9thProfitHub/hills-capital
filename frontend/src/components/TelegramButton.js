@@ -3,7 +3,7 @@ import React from "react";
 function TelegramButton() {
   const handleClick = () => {
     // Replace with your actual Telegram link
-    window.open("https://t.me/YourTelegramUsername", "_blank");
+    window.open("https://t.me/hillscap", "_blank");
   };
 
   return (

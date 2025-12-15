@@ -11,7 +11,8 @@ import {
   Grid,
   Card,
   CardContent,
-  Chip
+  Chip,
+  Alert
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -31,10 +32,8 @@ import { toast } from 'react-toastify';
 import api from '../services/api';
 import websocketService from '../services/websocketService';
 
-
 // Import dashboard sections
 import OverviewTab from '../components/dashboard/sections/OverviewTab';
-
 import TradingRobot from '../components/dashboard/sections/TradingRobot';
 import CopyTrading from '../components/dashboard/sections/CopyTrading';
 import Signals from '../components/dashboard/sections/Signals';
@@ -54,11 +53,7 @@ function TabPanel({ children, value, index, ...other }) {
       aria-labelledby={`dashboard-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 }
@@ -69,6 +64,49 @@ function a11yProps(index) {
     'aria-controls': `dashboard-tabpanel-${index}`,
   };
 }
+
+// Helper: access rules per feature
+const hasAccess = (level, feature) => {
+  const rules = {
+    signals: ['basic', 'intermediate', 'premium'],
+    copyTrading: ['intermediate', 'advanced', 'premium'],
+    robots: ['advanced', 'premium'],
+  };
+  return rules[feature]?.includes(level);
+};
+
+// Reusable locked message
+const LockedPanel = ({ title, neededLevels }) => (
+  <Box sx={{ maxWidth: 720 }}>
+    <Alert severity="warning" sx={{ mb: 2 }}>
+      {title} is locked.
+    </Alert>
+    <Typography variant="body1" sx={{ mb: 2 }}>
+      You need a subscription to access this feature:
+    </Typography>
+    <ul style={{ marginTop: 0 }}>
+      {neededLevels.map((lvl) => (
+        <li key={lvl}>
+          <strong>{lvl.charAt(0).toUpperCase() + lvl.slice(1)}</strong>
+        </li>
+      ))}
+    </ul>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      Upgrade your plan in the Subscription tab to unlock access.
+    </Typography>
+    <Button
+      variant="contained"
+      color="primary"
+      href="#"
+      onClick={(e) => {
+        e.preventDefault();
+        // Optionally: navigate to Subscription tab by setting activeTab programmatically
+      }}
+    >
+      Go to Subscription
+    </Button>
+  </Box>
+);
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -82,6 +120,9 @@ const Dashboard = () => {
   });
   const [currentSubscription, setCurrentSubscription] = useState(null);
 
+  // Subscription level from backend
+  const subscriptionLevel = user?.subscription_level || 'free';
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -91,9 +132,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const response = await api.get('/api/users/dashboard/stats');
-      console.log('📊 Dashboard API response:', response.data);
 
-      // Update dashboard stats with API data
       setDashboardStats({
         balance: response.data.stats?.balance || 0,
         activeInvestments: response.data.stats?.totalInvestments || 0,
@@ -101,10 +140,8 @@ const Dashboard = () => {
         welcomeMessage: response.data.welcomeMessage || 'Welcome back!'
       });
 
-      // Update current subscription data
       if (response.data.currentPlan) {
         setCurrentSubscription(response.data.currentPlan);
-        console.log('💳 Current subscription updated:', response.data.currentPlan);
       }
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -121,26 +158,19 @@ const Dashboard = () => {
   // WebSocket effect for real-time subscription updates
   useEffect(() => {
     try {
-      // Connect to WebSocket service
       websocketService.connect();
 
-      // Listen for user-specific subscription updates
       const handleUserSubscriptionUpdate = (data) => {
-        console.log('📡 Received user subscription update:', data);
         if (data.subscription) {
           setCurrentSubscription(data.subscription);
-          // Update dashboard stats with new subscription status
-          setDashboardStats(prev => ({
+          setDashboardStats((prev) => ({
             ...prev,
             subscriptionStatus: data.subscription.status || 'inactive'
           }));
         }
       };
 
-      // Listen for general subscription updates
-      const handleSubscriptionsUpdate = (data) => {
-        console.log('📡 Received subscriptions update:', data);
-        // Refresh dashboard data to get latest subscription info
+      const handleSubscriptionsUpdate = () => {
         fetchDashboardData();
       };
 
@@ -148,33 +178,13 @@ const Dashboard = () => {
       websocketService.on('subscriptionsUpdated', handleSubscriptionsUpdate);
 
       return () => {
-        try {
-          websocketService.off('userSubscriptionUpdated', handleUserSubscriptionUpdate);
-          websocketService.off('subscriptionsUpdated', handleSubscriptionsUpdate);
-        } catch (error) {
-          console.warn('Error cleaning up WebSocket subscription listeners:', error);
-        }
+        websocketService.off('userSubscriptionUpdated', handleUserSubscriptionUpdate);
+        websocketService.off('subscriptionsUpdated', handleSubscriptionsUpdate);
       };
     } catch (error) {
       console.warn('WebSocket connection failed:', error);
-      // Continue without WebSocket - dashboard should still work
     }
   }, [fetchDashboardData]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   if (loading) {
     return (
@@ -197,10 +207,7 @@ const Dashboard = () => {
           </Typography>
         </Box>
         <Box>
-          <Button
-            variant="outlined"
-            onClick={fetchDashboardData}
-          >
+          <Button variant="outlined" onClick={fetchDashboardData}>
             Refresh Data
           </Button>
         </Box>
@@ -213,9 +220,7 @@ const Dashboard = () => {
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <AccountBalanceWallet sx={{ color: 'primary.main', mr: 1 }} />
-                <Typography variant="h6" component="h2">
-                  Account Balance
-                </Typography>
+                <Typography variant="h6">Account Balance</Typography>
               </Box>
               <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>
                 ${dashboardStats.balance?.toLocaleString() || '0'}
@@ -229,9 +234,7 @@ const Dashboard = () => {
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <TrendingUp sx={{ color: 'info.main', mr: 1 }} />
-                <Typography variant="h6" component="h2">
-                  Active Investments
-                </Typography>
+                <Typography variant="h6">Active Investments</Typography>
               </Box>
               <Typography variant="h4" sx={{ fontWeight: 700, color: 'info.main' }}>
                 {dashboardStats.activeInvestments || 0}
@@ -245,9 +248,7 @@ const Dashboard = () => {
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <CheckCircle sx={{ color: 'success.main', mr: 1 }} />
-                <Typography variant="h6" component="h2">
-                  Subscription Status
-                </Typography>
+                <Typography variant="h6">Subscription Status</Typography>
               </Box>
               <Chip
                 label={dashboardStats.subscriptionStatus === 'active' ? 'Active' : 'Inactive'}
@@ -260,7 +261,7 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Main Content Area with Tabs */}
+      {/* Tabs */}
       <Box sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs
@@ -270,20 +271,50 @@ const Dashboard = () => {
             variant="scrollable"
             scrollButtons="auto"
           >
+            {/* 0 */}
             <Tab label="Overview" icon={<DashboardIcon />} iconPosition="start" {...a11yProps(0)} />
 
-            <Tab label="Trading Robots" icon={<SmartToy />} iconPosition="start" {...a11yProps(2)} />
-            <Tab label="Copy Trading" icon={<ContentCopy />} iconPosition="start" {...a11yProps(3)} />
-            <Tab label="Signals" icon={<Notifications />} iconPosition="start" {...a11yProps(4)} />
-            <Tab label="Education" icon={<School />} iconPosition="start" {...a11yProps(5)} />
-            <Tab label="Affiliate" icon={<People />} iconPosition="start" {...a11yProps(6)} />
-            <Tab label="Payments" icon={<Payment />} iconPosition="start" {...a11yProps(7)} />
-            <Tab label="Subscription" icon={<CreditCard />} iconPosition="start" {...a11yProps(8)} />
-            <Tab label="Scanners" icon={<ShowChart />} iconPosition="start" {...a11yProps(9)} />
+            {/* Restricted tabs */}
+            {/* 1 */}
+            <Tab
+              label="Trading Robots"
+              icon={<SmartToy />}
+              iconPosition="start"
+              {...a11yProps(1)}
+              disabled={!hasAccess(subscriptionLevel, 'robots')}
+            />
+            {/* 2 */}
+            <Tab
+              label="Copy Trading"
+              icon={<ContentCopy />}
+              iconPosition="start"
+              {...a11yProps(2)}
+              disabled={!hasAccess(subscriptionLevel, 'copyTrading')}
+            />
+            {/* 3 */}
+            <Tab
+              label="Signals"
+              icon={<Notifications />}
+              iconPosition="start"
+              {...a11yProps(3)}
+              disabled={!hasAccess(subscriptionLevel, 'signals')}
+            />
+
+            {/* Always accessible */}
+            {/* 4 */}
+            <Tab label="Education" icon={<School />} iconPosition="start" {...a11yProps(4)} />
+            {/* 5 */}
+            <Tab label="Affiliate" icon={<People />} iconPosition="start" {...a11yProps(5)} />
+            {/* 6 */}
+            <Tab label="Payments" icon={<Payment />} iconPosition="start" {...a11yProps(6)} />
+            {/* 7 */}
+            <Tab label="Subscription" icon={<CreditCard />} iconPosition="start" {...a11yProps(7)} />
+            {/* 8 */}
+            <Tab label="Scanners" icon={<ShowChart />} iconPosition="start" {...a11yProps(8)} />
           </Tabs>
         </Box>
 
-        {/* Tab Panels - Each tab panel contains a specific section of the dashboard */}
+        {/* Tab Panels - keep indices consistent with Tabs above */}
         <TabPanel value={activeTab} index={0}>
           <OverviewTab
             onRefresh={fetchDashboardData}
@@ -292,54 +323,60 @@ const Dashboard = () => {
           />
         </TabPanel>
 
+        {/* Trading Robots (restricted) */}
         <TabPanel value={activeTab} index={1}>
-          <TradingRobot
-            onRefresh={fetchDashboardData}
-          />
+          {hasAccess(subscriptionLevel, 'robots') ? (
+            <TradingRobot onRefresh={fetchDashboardData} />
+          ) : (
+            <LockedPanel title="Trading Robots" neededLevels={['advanced', 'premium']} />
+          )}
         </TabPanel>
 
+        {/* Copy Trading (restricted) */}
+        <TabPanel value={activeTab} index={2}>
+          {hasAccess(subscriptionLevel, 'copyTrading') ? (
+            <CopyTrading onRefresh={fetchDashboardData} />
+          ) : (
+            <LockedPanel title="Copy Trading" neededLevels={['intermediate', 'advanced', 'premium']} />
+          )}
+        </TabPanel>
+
+        {/* Signals (restricted) */}
         <TabPanel value={activeTab} index={3}>
-          <CopyTrading
-            onRefresh={fetchDashboardData}
-          />
+          {hasAccess(subscriptionLevel, 'signals') ? (
+            <Signals onRefresh={fetchDashboardData} />
+          ) : (
+            <LockedPanel title="Signals" neededLevels={['basic', 'intermediate', 'premium']} />
+          )}
         </TabPanel>
 
+        {/* Education */}
         <TabPanel value={activeTab} index={4}>
-          <Signals
-            onRefresh={fetchDashboardData}
-          />
+          <Education onRefresh={fetchDashboardData} />
         </TabPanel>
 
+        {/* Affiliate */}
         <TabPanel value={activeTab} index={5}>
-          <Education
-            onRefresh={fetchDashboardData}
-          />
+          <Affiliate onRefresh={fetchDashboardData} />
         </TabPanel>
 
+        {/* Payments */}
         <TabPanel value={activeTab} index={6}>
-          <Affiliate
-            onRefresh={fetchDashboardData}
-          />
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={7}>
           <PaymentHistory />
         </TabPanel>
 
-        <TabPanel value={activeTab} index={8}>
-          <Subscription
-            onSubscribeSuccess={fetchDashboardData}
-          />
+        {/* Subscription */}
+        <TabPanel value={activeTab} index={7}>
+          <Subscription onSubscribeSuccess={fetchDashboardData} />
         </TabPanel>
 
-        <TabPanel value={activeTab} index={9}>
+        {/* Scanners */}
+        <TabPanel value={activeTab} index={8}>
           <Scanners />
         </TabPanel>
       </Box>
     </Container>
   );
 };
-
-
 
 export default Dashboard;

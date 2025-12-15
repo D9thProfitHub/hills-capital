@@ -43,8 +43,8 @@ if (!$userId) {
     exit;
 }
 
-// --- Fetch user info ---
-$stmt = $pdo->prepare("SELECT id, name, email, phone FROM users WHERE id = ?");
+// --- Fetch user info (include subscription_level) ---
+$stmt = $pdo->prepare("SELECT id, name, email, phone, subscription_level FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -58,6 +58,12 @@ if (!$user) {
 http_response_code(200);
 echo json_encode([
     "message" => "User authenticated",
-    "user"    => $user
+    "user"    => [
+        "id"                 => $user['id'],
+        "name"               => $user['name'],
+        "email"              => $user['email'],
+        "phone"              => $user['phone'],
+        "subscription_level" => $user['subscription_level'] ?? 'free'
+    ]
 ]);
 ?>
