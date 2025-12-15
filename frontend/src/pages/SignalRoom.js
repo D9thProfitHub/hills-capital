@@ -85,7 +85,7 @@ const SignalRoom = () => {
       id: 'synthetics',
       label: 'Synthetics',
       icon: <AccountBalanceWalletIcon />,
-      access: ['platinum'], // Only for platinum members
+      access: ['gold', 'platinum'], // Only for platinum members
       signals: [
         { pair: 'SYNTH-1', type: 'Synthetic', risk: 'High' },
         { pair: 'SYNTH-2', type: 'Synthetic', risk: 'Medium' },
