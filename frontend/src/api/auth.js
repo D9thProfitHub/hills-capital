@@ -1,32 +1,29 @@
-// src/api/auth.js
+// src/api/auth.js (Sessions)
 
-// Register a new user
-export async function register(email, password) {
+export async function register({ name, email, phone, password }) {
   const res = await fetch("https://d9thprofithub.com.ng/api/register.php", {
     method: "POST",
-    body: new URLSearchParams({ email, password })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, phone, password }),
+    credentials: "include" // 👈 send cookies
   });
   return res.json();
 }
 
-// Login user
 export async function login(email, password) {
   const res = await fetch("https://d9thprofithub.com.ng/api/login.php", {
     method: "POST",
-    body: new URLSearchParams({ email, password })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+    credentials: "include" // 👈 send cookies
   });
-  const data = await res.json();
-  if (data.token) {
-    localStorage.setItem("token", data.token); // store token
-  }
-  return data;
+  return res.json();
 }
 
-// Get current user
 export async function getMe() {
-  const token = localStorage.getItem("token");
   const res = await fetch("https://d9thprofithub.com.ng/api/me.php", {
-    headers: { Authorization: token }
+    method: "GET",
+    credentials: "include" // 👈 send cookies
   });
   return res.json();
 }

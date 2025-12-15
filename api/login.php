@@ -1,6 +1,6 @@
 <?php
 // --- CORS headers ---
-header("Access-Control-Allow-Origin: https://hills-capital.vercel.app"); // replace with your actual Vercel domain
+header("Access-Control-Allow-Origin: https://hills-capital.vercel.app"); // must match your frontend domain
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Credentials: true");
@@ -14,10 +14,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 include 'db.php';
 
-// --- Start session for token storage ---
+// --- Configure session cookie for cross-origin ---
+ini_set('session.cookie_secure', 1);       // only send over HTTPS
+ini_set('session.cookie_samesite', 'None'); // allow cross-site requests
+ini_set('session.cookie_httponly', 1);     // prevent JS access
+ini_set('session.cookie_lifetime', 3600);  // 1 hour lifetime
+
 session_start();
 
-// --- Decode JSON input (Axios sends JSON) ---
+// --- Decode JSON input ---
 $input = json_decode(file_get_contents("php://input"), true);
 
 $email    = trim($input['email'] ?? '');
@@ -30,8 +35,9 @@ if (empty($email) || empty($password)) {
     exit;
 }
 
-// --- Fetch user from DB (include subscription_level) ---
-$stmt = $pdo->prepare("SELECT id, name, email, phone, password_hash, subscription_level FROM users WHERE email = ?");
+// --- Fetch user from DB ---
+$stmt = $pdo->prepare("SELECT id, name, email, phone, password_hash, subscription_level 
+                       FROM users WHERE email = ?");
 $stmt->execute([$email]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,18 +54,13 @@ if (!password_verify($password, $user['password_hash'])) {
     exit;
 }
 
-// --- Generate a simple token (replace with JWT if needed) ---
-$token = bin2hex(random_bytes(32));
-
-// --- Store token and user ID in session ---
-$_SESSION['token']   = $token;
+// --- Store user ID in session ---
 $_SESSION['user_id'] = $user['id'];
 
 // --- Return success response ---
 http_response_code(200);
 echo json_encode([
     "message" => "Login successful",
-    "token"   => $token,
     "user"    => [
         "id"                 => $user['id'],
         "name"               => $user['name'],

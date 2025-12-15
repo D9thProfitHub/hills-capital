@@ -1,6 +1,6 @@
 <?php
 // --- CORS headers ---
-header("Access-Control-Allow-Origin: https://hills-capital.vercel.app"); // replace with your actual Vercel domain
+header("Access-Control-Allow-Origin: https://hills-capital.vercel.app"); // must match your frontend domain
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Credentials: true");
@@ -13,26 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include 'db.php';
+
+// --- Configure session cookie for cross-origin ---
+ini_set('session.cookie_secure', 1);        // only send over HTTPS
+ini_set('session.cookie_samesite', 'None'); // allow cross-site requests
+ini_set('session.cookie_httponly', 1);      // prevent JS access
+ini_set('session.cookie_lifetime', 3600);   // 1 hour lifetime
+
 session_start();
-
-// --- Get Authorization header ---
-$headers = getallheaders();
-$authHeader = $headers['Authorization'] ?? '';
-
-if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-    http_response_code(401);
-    echo json_encode(["error" => "Authorization token required"]);
-    exit;
-}
-
-$token = $matches[1];
-
-// --- Validate token against session ---
-if (!isset($_SESSION['token']) || $_SESSION['token'] !== $token) {
-    http_response_code(401);
-    echo json_encode(["error" => "Invalid or expired token"]);
-    exit;
-}
 
 // --- Get user ID from session ---
 $userId = $_SESSION['user_id'] ?? null;
