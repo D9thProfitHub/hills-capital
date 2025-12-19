@@ -33,28 +33,35 @@ import CurrencyBitcoinIcon from '@mui/icons-material/CurrencyBitcoin';
 import PaidIcon from '@mui/icons-material/Paid';
 import { useNavigate } from 'react-router-dom';
 
-// Mock user subscription data - in a real app, this would come from your auth context/API
+import { getMe } from '../api/auth'; // adjust path if needed
+
 const useUserSubscription = () => {
-  // For demo purposes, you can change this to 'gold' or 'platinum' to test different access levels
   const [subscription, setSubscription] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you would fetch this from your auth context or API
-    // For now, we'll simulate a loading state and then set to 'gold'
     let isMounted = true;
-    const timer = setTimeout(() => {
-      if (isMounted) {
-        setSubscription('gold'); // Change to 'platinum' to test premium features
-      }
-    }, 500);
 
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
+    const fetchSubscription = async () => {
+      try {
+        const data = await getMe(); // calls me.php
+        if (isMounted && data.user) {
+          setSubscription(data.user.subscription_level || 'free');
+        }
+      } catch (err) {
+        console.error("Failed to fetch subscription:", err);
+        if (isMounted) setSubscription('free'); // fallback
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     };
+
+    fetchSubscription();
+
+    return () => { isMounted = false; };
   }, []);
 
-  return { subscription, isLoading: !subscription };
+  return { subscription, isLoading };
 };
 
 const SignalRoom = () => {
