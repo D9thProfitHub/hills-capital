@@ -81,7 +81,7 @@ const SignalRoom = () => {
       id: 'forex',
       label: 'Currency Pairs',
       icon: <CurrencyExchangeIcon />,
-      access: ['gold', 'platinum'],
+      access: ['free'],
       signals: [
         { pair: 'EUR/USD', type: 'Forex', risk: 'Medium' },
         { pair: 'GBP/USD', type: 'Forex', risk: 'Medium' },
@@ -92,7 +92,7 @@ const SignalRoom = () => {
       id: 'synthetics',
       label: 'Synthetics',
       icon: <AccountBalanceWalletIcon />,
-      access: ['gold', 'platinum'], // Only for platinum members
+      access: ['platinum'], // Only for platinum members
       signals: [
         { pair: 'SYNTH-1', type: 'Synthetic', risk: 'High' },
         { pair: 'SYNTH-2', type: 'Synthetic', risk: 'Medium' },
@@ -102,7 +102,7 @@ const SignalRoom = () => {
       id: 'futures',
       label: 'Crypto Futures',
       icon: <PaidIcon />,
-      access: ['gold', 'platinum'],
+      access: ['gold'], // Only for gold members
       signals: [
         { pair: 'BTC/USDT', type: 'Futures', risk: 'High' },
         { pair: 'ETH/USDT', type: 'Futures', risk: 'High' },
@@ -112,7 +112,7 @@ const SignalRoom = () => {
       id: 'spot',
       label: 'Crypto Spot',
       icon: <CurrencyBitcoinIcon />,
-      access: ['gold', 'platinum'],
+      access: ['gold'], // Only for gold members
       signals: [
         { pair: 'BTC/USD', type: 'Spot', risk: 'Medium' },
         { pair: 'ETH/USD', type: 'Spot', risk: 'Medium' },
